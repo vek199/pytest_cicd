@@ -12,29 +12,31 @@ This file demonstrates:
 - Command line options
 """
 
-import pytest
-import time
 import json
 import os
-from typing import Generator, List, Callable
+import time
 from pathlib import Path
+from typing import Callable, Generator, List
 
-from my_math import (
-    Calculator, Statistics, MathContext,
-    add, subtract, multiply, divide
-)
+import pytest
 
+from my_math import Calculator, MathContext, Statistics, add, divide, multiply, subtract
 
 # ============================================================================
 # CUSTOM MARKERS REGISTRATION
 # ============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
-    config.addinivalue_line("markers", "smoke: marks tests as smoke tests (quick sanity checks)")
+    config.addinivalue_line(
+        "markers", "smoke: marks tests as smoke tests (quick sanity checks)"
+    )
     config.addinivalue_line("markers", "regression: marks tests for regression testing")
     config.addinivalue_line("markers", "edge_case: marks tests for edge cases")
     config.addinivalue_line("markers", "performance: marks performance-related tests")
@@ -44,26 +46,24 @@ def pytest_configure(config):
 # COMMAND LINE OPTIONS
 # ============================================================================
 
+
 def pytest_addoption(parser):
     """Add custom command line options."""
     parser.addoption(
-        "--run-slow",
-        action="store_true",
-        default=False,
-        help="Run slow tests"
+        "--run-slow", action="store_true", default=False, help="Run slow tests"
     )
     parser.addoption(
         "--performance-threshold",
         action="store",
         default="1.0",
-        help="Performance threshold in seconds"
+        help="Performance threshold in seconds",
     )
     parser.addoption(
         "--test-env",
         action="store",
         default="development",
         choices=["development", "staging", "production"],
-        help="Test environment"
+        help="Test environment",
     )
 
 
@@ -79,6 +79,7 @@ def pytest_collection_modifyitems(config, items):
 # ============================================================================
 # SESSION-SCOPED FIXTURES
 # ============================================================================
+
 
 @pytest.fixture(scope="session")
 def session_start_time() -> float:
@@ -117,11 +118,12 @@ def prime_numbers() -> List[int]:
 # MODULE-SCOPED FIXTURES
 # ============================================================================
 
+
 @pytest.fixture(scope="module")
 def module_calculator() -> Calculator:
     """
     Calculator instance shared within a module.
-    
+
     This demonstrates module scope - the same instance
     is reused for all tests in a module.
     """
@@ -141,24 +143,25 @@ def sample_statistics_data() -> List[float]:
 # CLASS-SCOPED FIXTURES
 # ============================================================================
 
+
 @pytest.fixture(scope="class")
 def class_calculator(request) -> Generator[Calculator, None, None]:
     """
     Calculator instance shared within a test class.
-    
+
     Demonstrates:
     - Class scope
     - Adding fixture to request.cls for access in class
     - Generator-based fixture with teardown
     """
     calc = Calculator(100)
-    
+
     # Make available on the test class
     if request.cls is not None:
         request.cls.calculator = calc
-    
+
     yield calc
-    
+
     # Teardown
     calc.clear()
     calc.clear_history()
@@ -167,6 +170,7 @@ def class_calculator(request) -> Generator[Calculator, None, None]:
 # ============================================================================
 # FUNCTION-SCOPED FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def calculator() -> Calculator:
@@ -208,39 +212,46 @@ def silent_math_context() -> MathContext:
 # PARAMETRIZED FIXTURES
 # ============================================================================
 
+
 @pytest.fixture(params=[0, 1, 10, 100, -5, 3.14])
 def various_numbers(request) -> float:
     """Fixture providing various numbers for testing."""
     return request.param
 
 
-@pytest.fixture(params=[
-    (1, 2, 3),
-    (0, 0, 0),
-    (-1, 1, 0),
-    (10, 20, 30),
-    (0.5, 0.5, 1.0),
-])
+@pytest.fixture(
+    params=[
+        (1, 2, 3),
+        (0, 0, 0),
+        (-1, 1, 0),
+        (10, 20, 30),
+        (0.5, 0.5, 1.0),
+    ]
+)
 def add_test_cases(request) -> tuple:
     """Fixture providing (a, b, expected) tuples for addition tests."""
     return request.param
 
 
-@pytest.fixture(params=[
-    ([1, 2, 3], 2.0),
-    ([10, 20, 30], 20.0),
-    ([5, 5, 5, 5], 5.0),
-    ([-10, 0, 10], 0.0),
-])
+@pytest.fixture(
+    params=[
+        ([1, 2, 3], 2.0),
+        ([10, 20, 30], 20.0),
+        ([5, 5, 5, 5], 5.0),
+        ([-10, 0, 10], 0.0),
+    ]
+)
 def mean_test_cases(request) -> tuple:
     """Fixture providing (data, expected_mean) tuples."""
     return request.param
 
 
-@pytest.fixture(params=[
-    Calculator,
-    Statistics,
-])
+@pytest.fixture(
+    params=[
+        Calculator,
+        Statistics,
+    ]
+)
 def math_class(request):
     """Fixture providing different math classes to test."""
     return request.param
@@ -250,25 +261,26 @@ def math_class(request):
 # FIXTURE FACTORIES
 # ============================================================================
 
+
 @pytest.fixture
 def calculator_factory() -> Callable[[float], Calculator]:
     """
     Factory fixture for creating calculators with specific values.
-    
+
     Usage in tests:
         def test_something(calculator_factory):
             calc1 = calculator_factory(10)
             calc2 = calculator_factory(20)
     """
     created_calculators: List[Calculator] = []
-    
+
     def _create_calculator(initial_value: float = 0) -> Calculator:
         calc = Calculator(initial_value)
         created_calculators.append(calc)
         return calc
-    
+
     yield _create_calculator
-    
+
     # Cleanup all created calculators
     for calc in created_calculators:
         calc.clear()
@@ -277,8 +289,10 @@ def calculator_factory() -> Callable[[float], Calculator]:
 @pytest.fixture
 def statistics_factory() -> Callable[[List[float]], Statistics]:
     """Factory fixture for creating Statistics with specific data."""
+
     def _create_statistics(data: List[float] = None) -> Statistics:
         return Statistics(data or [])
+
     return _create_statistics
 
 
@@ -286,17 +300,18 @@ def statistics_factory() -> Callable[[List[float]], Statistics]:
 # AUTOUSE FIXTURES
 # ============================================================================
 
+
 @pytest.fixture(autouse=True)
 def test_timing(request):
     """
     Automatically measure and report test duration.
-    
+
     autouse=True means this runs for every test without explicit request.
     """
     start_time = time.perf_counter()
     yield
     duration = time.perf_counter() - start_time
-    
+
     # Add duration as a property (accessible in hooks)
     request.node.test_duration = duration
 
@@ -305,6 +320,7 @@ def test_timing(request):
 def reset_logging():
     """Reset logging level before each test."""
     import logging
+
     logging.getLogger("my_math").setLevel(logging.WARNING)
     yield
     logging.getLogger("my_math").setLevel(logging.WARNING)
@@ -314,19 +330,20 @@ def reset_logging():
 # FIXTURES WITH TEARDOWN (YIELD vs REQUEST.ADDFINALIZER)
 # ============================================================================
 
+
 @pytest.fixture
 def temp_data_file(tmp_path) -> Generator[Path, None, None]:
     """
     Create a temporary JSON file for testing.
-    
+
     Demonstrates yield-based teardown.
     """
     file_path = tmp_path / "test_data.json"
     data = {"values": [1, 2, 3, 4, 5], "name": "test"}
     file_path.write_text(json.dumps(data))
-    
+
     yield file_path
-    
+
     # Teardown: clean up the file
     if file_path.exists():
         file_path.unlink()
@@ -336,18 +353,18 @@ def temp_data_file(tmp_path) -> Generator[Path, None, None]:
 def calculator_with_finalizer(request) -> Calculator:
     """
     Calculator fixture using request.addfinalizer.
-    
+
     Alternative to yield-based teardown.
     Useful when you might have multiple finalizers.
     """
     calc = Calculator(50)
-    
+
     def cleanup():
         calc.clear()
         calc.memory_clear()
-    
+
     request.addfinalizer(cleanup)
-    
+
     return calc
 
 
@@ -355,11 +372,12 @@ def calculator_with_finalizer(request) -> Calculator:
 # DEPENDENT FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def populated_calculator(calculator: Calculator) -> Calculator:
     """
     Calculator with operations already performed.
-    
+
     Depends on the calculator fixture.
     """
     calculator.add(10).multiply(2).subtract(5)
@@ -370,7 +388,7 @@ def populated_calculator(calculator: Calculator) -> Calculator:
 def normalized_statistics(statistics_with_data: Statistics) -> Statistics:
     """
     Statistics fixture with normalized data.
-    
+
     Depends on statistics_with_data fixture.
     """
     # Normalize data to mean=0, std=1
@@ -384,10 +402,12 @@ def normalized_statistics(statistics_with_data: Statistics) -> Statistics:
 # ASYNC FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 async def async_calculator():
     """Async fixture example."""
     import asyncio
+
     await asyncio.sleep(0.01)  # Simulate async setup
     calc = Calculator(0)
     yield calc
@@ -397,6 +417,7 @@ async def async_calculator():
 # ============================================================================
 # PYTEST HOOKS
 # ============================================================================
+
 
 def pytest_runtest_setup(item):
     """Called before each test setup."""
@@ -418,12 +439,12 @@ def pytest_runtest_teardown(item, nextitem):
 def pytest_runtest_makereport(item, call):
     """
     Hook to capture test results.
-    
+
     Demonstrates hookwrapper for accessing both before and after.
     """
     outcome = yield
     report = outcome.get_result()
-    
+
     # Store test result on the item for later access
     if report.when == "call":
         item.test_result = report.outcome
@@ -432,8 +453,8 @@ def pytest_runtest_makereport(item, call):
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     """Add custom summary to terminal output."""
     terminalreporter.write_sep("-", "Custom Test Summary")
-    passed = len(terminalreporter.stats.get('passed', []))
-    failed = len(terminalreporter.stats.get('failed', []))
+    passed = len(terminalreporter.stats.get("passed", []))
+    failed = len(terminalreporter.stats.get("failed", []))
     terminalreporter.write_line(f"Tests passed: {passed}")
     terminalreporter.write_line(f"Tests failed: {failed}")
 
@@ -441,6 +462,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 # ============================================================================
 # ENVIRONMENT FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def test_environment(request) -> str:
@@ -458,22 +480,24 @@ def performance_threshold(request) -> float:
 # MOCK/STUB FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def mock_slow_operation(mocker):
     """
     Mock fixture for slow operations.
-    
+
     Requires pytest-mock plugin.
     """
+
     def _mock(target, return_value):
         return mocker.patch(target, return_value=return_value)
+
     return _mock
 
 
 @pytest.fixture
 def mock_time(mocker):
     """Mock time.time to control timing in tests."""
-    mock = mocker.patch('time.time')
+    mock = mocker.patch("time.time")
     mock.return_value = 1000.0
     return mock
-
