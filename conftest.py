@@ -13,14 +13,13 @@ This file demonstrates:
 """
 
 import json
-import os
 import time
 from pathlib import Path
 from typing import Callable, Generator, List
 
 import pytest
 
-from my_math import Calculator, MathContext, Statistics, add, divide, multiply, subtract
+from my_math import Calculator, MathContext, Statistics
 
 # ============================================================================
 # CUSTOM MARKERS REGISTRATION

@@ -821,7 +821,7 @@ class TestMocking:
         mock_calc.value = 42
         mock_calc.add.return_value = mock_calc
 
-        result = mock_calc.add(10)
+        mock_calc.add(10)
         mock_calc.add.assert_called_once_with(10)
         assert mock_calc.value == 42
 
@@ -1253,7 +1253,7 @@ class TestIntegration:
         calc = Calculator(100)
 
         with math_context:
-            result = math_context.execute(calc.add, 50)
+            math_context.execute(calc.add, 50)
             assert calc.value == 150
 
     @pytest.mark.integration

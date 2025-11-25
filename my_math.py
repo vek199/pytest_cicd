@@ -15,7 +15,8 @@ import logging
 import math
 import time
 from functools import wraps
-from typing import Any, Callable, List, Optional, Union
+from types import TracebackType
+from typing import Any, Callable, List, Optional, Type, Union
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -65,11 +66,11 @@ class EmptySequenceError(MathError):
 # ============================================================================
 
 
-def timing_decorator(func: Callable) -> Callable:
+def timing_decorator(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to measure execution time of a function."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs) -> Any:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start = time.perf_counter()
         result = func(*args, **kwargs)
         end = time.perf_counter()
@@ -79,11 +80,11 @@ def timing_decorator(func: Callable) -> Callable:
     return wrapper
 
 
-def validate_numeric_args(func: Callable) -> Callable:
+def validate_numeric_args(func: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator to validate that all positional args are numeric."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs) -> Any:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         for i, arg in enumerate(args):
             if not isinstance(arg, (int, float)):
                 raise InvalidInputError(
@@ -94,13 +95,13 @@ def validate_numeric_args(func: Callable) -> Callable:
     return wrapper
 
 
-def retry(max_attempts: int = 3, delay: float = 0.1) -> Callable:
+def retry(max_attempts: int = 3, delay: float = 0.1) -> Callable[..., Any]:
     """Decorator factory for retrying failed operations."""
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(*args, **kwargs) -> Any:
-            last_exception = None
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            last_exception: Optional[Exception] = None
             for attempt in range(max_attempts):
                 try:
                     return func(*args, **kwargs)
@@ -108,7 +109,9 @@ def retry(max_attempts: int = 3, delay: float = 0.1) -> Callable:
                     last_exception = e
                     if attempt < max_attempts - 1:
                         time.sleep(delay)
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            raise RuntimeError("Retry failed with no exception captured")
 
         return wrapper
 
@@ -606,14 +609,14 @@ class Statistics:
 
         return sorted_data[f] * (c - k) + sorted_data[c] * (k - f)
 
-    def quartiles(self) -> tuple:
+    def quartiles(self) -> tuple[float, float, float]:
         """Return Q1, Q2 (median), Q3."""
         return (self.percentile(25), self.percentile(50), self.percentile(75))
 
     def iqr(self) -> float:
         """Interquartile range (Q3 - Q1)."""
         q1, _, q3 = self.quartiles()
-        return q3 - q1
+        return float(q3 - q1)
 
     def z_score(self, value: Number) -> float:
         """Calculate z-score for a given value."""
@@ -736,7 +739,12 @@ class MathContext:
         logger.debug(f"Entering MathContext with precision={self.precision}")
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> bool:
         """Exit context and cleanup."""
         logger.debug(
             f"Exiting MathContext: {self.operations_count} operations, "
@@ -748,7 +756,7 @@ class MathContext:
             return True
         return False
 
-    def execute(self, func: Callable, *args, **kwargs) -> Any:
+    def execute(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         """Execute a function within this context."""
         self.operations_count += 1
         try:
@@ -773,7 +781,8 @@ async def async_add(a: Number, b: Number) -> Number:
     import asyncio
 
     await asyncio.sleep(0.01)  # Simulate async operation
-    return add(a, b)
+    result: Number = add(a, b)
+    return result
 
 
 async def async_factorial(n: int) -> int:
