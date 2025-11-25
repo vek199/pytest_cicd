@@ -1,1 +1,43 @@
-pytest
+# Testing Framework
+pytest>=7.4.0
+
+# Async testing support
+pytest-asyncio>=0.21.0
+
+# Code coverage
+pytest-cov>=4.1.0
+coverage>=7.3.0
+
+# Mocking support
+pytest-mock>=3.11.0
+
+# Test output formatting
+pytest-sugar>=0.9.7
+
+# Parallel test execution
+pytest-xdist>=3.3.0
+
+# Test timeouts
+pytest-timeout>=2.1.0
+
+# Benchmark tests
+pytest-benchmark>=4.0.0
+
+# Random test ordering (catch order-dependent tests)
+pytest-randomly>=3.13.0
+
+# HTML report generation
+pytest-html>=4.0.0
+
+# Code quality and linting
+flake8>=6.1.0
+black>=23.7.0
+isort>=5.12.0
+mypy>=1.5.0
+
+# Type stubs
+types-setuptools>=68.0.0
+
+# Documentation
+sphinx>=7.2.0
+sphinx-rtd-theme>=1.3.0
